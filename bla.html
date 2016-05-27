@@ -60,7 +60,7 @@ var yValue = function(d) { return d["total_time"];}, // data -> value
     yAxis = d3.svg.axis().scale(yScale).orient("left");
 
 // setup fill color
-var cValue = function(d) { return d.Manufacturer;},
+var cValue = function(d) { return d.host;},
     color = d3.scale.category10();
 
 // add the graph canvas to the body of the webpage
