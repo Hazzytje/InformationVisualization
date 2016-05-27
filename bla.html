@@ -6,6 +6,8 @@
 <!-- Tooltip example from http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html -->
 
 <style>
+
+
 body {
   font: 11px sans-serif;
 }
@@ -27,14 +29,16 @@ body {
   height: 28px;
   pointer-events: none;
 }
+
+
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
 <script>
 var margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    width = 1280 - margin.left - margin.right,
+    height = 720 - margin.top - margin.bottom;
 
 /* 
  * value accessor - returns the value to encode for a given data object.
@@ -63,8 +67,10 @@ var cValue = function(d) { return d.Manufacturer;},
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
+     .call(d3.behavior.zoom().on("zoom", function () {
+    svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+  }))
   .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // add the tooltip area to the webpage
 var tooltip = d3.select("body").append("div")
@@ -157,6 +163,7 @@ if (error) {
       .style("text-anchor", "end")
       .text(function(d) { return d;})
 });
+
 
 </script>
 </body>
