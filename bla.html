@@ -50,7 +50,7 @@ var xValue = function(d) { return d.nbytes_size;}, // data -> value
     xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
 // setup y
-var yValue = function(d) { return d["total_time (S)"];}, // data -> value
+var yValue = function(d) { return d["total_time"];}, // data -> value
     yScale = d3.scale.linear().range([height, 0]), // value -> display
     yMap = function(d) { return yScale(yValue(d));}, // data -> display
     yAxis = d3.svg.axis().scale(yScale).orient("left");
@@ -73,10 +73,12 @@ var tooltip = d3.select("body").append("div")
 
 // load data
 d3.csv("finalDataForAnalysis.csv", function(error, data) {
-
+if (error) {
+  console.log(error)
+}
   // change string (from CSV) into number format
   data.forEach(function(d) {
-    d.Calories = +d.Calories;
+    d.nbytes_size = +d.nbytes_size;
     d["total_time"] = +d["total_time"];
 //    console.log(d);
   });
@@ -107,7 +109,7 @@ d3.csv("finalDataForAnalysis.csv", function(error, data) {
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("total_time (s)");
+      .text("total_time");
 
   // draw dots
   svg.selectAll(".dot")
@@ -123,7 +125,7 @@ d3.csv("finalDataForAnalysis.csv", function(error, data) {
                .duration(200)
                .style("opacity", .9);
           tooltip.html(d["total_time"] + "<br/> (" + xValue(d) 
-	        + ", " + yValue(d) + ")")
+          + ", " + yValue(d) + ")")
                .style("left", (d3.event.pageX + 5) + "px")
                .style("top", (d3.event.pageY - 28) + "px");
       })
