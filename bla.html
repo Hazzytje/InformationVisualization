@@ -29,6 +29,10 @@ body {
   padding-top: 10px;
 }
 
+#checkboxlist {
+  list-style: none;
+}
+
 .axis path,
 .axis line {
   fill: none;
@@ -53,9 +57,8 @@ body {
 </style>
 <body>
 	<div id="sidebar">
-		test
-		<div id="checkboxlist">
-		</div>
+		<ul id="checkboxlist">
+		</ul>
 	</div>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
@@ -192,10 +195,13 @@ if (error) {
   var sidebar = d3.select("#sidebar");
   var checkboxlist = sidebar.select("#checkboxlist");
   checkboxlist.selectAll(".filtercheckbox")
-        .data(color.domain())
-      .enter().append("input")
+  .data(color.domain())
+      .enter().append("li")
+        .append("label")
+          .text("what what")
+      .append("input")
         .attr("type", "checkbox")
-        .attr("checked", true);
+        .property("checked", true);
 });
 
 
