@@ -4,12 +4,29 @@
 
 <!-- Example based on http://bl.ocks.org/mbostock/3887118 -->
 <!-- Tooltip example from http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html -->
+<script src="https://code.jquery.com/jquery-2.2.4.js" integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI=" crossorigin="anonymous"></script>
 
 <style>
 
 
 body {
+  height: 100%;
   font: 11px sans-serif;
+  margin: 0;
+}
+
+#scatterplot {
+  height: 100vh;
+  width: 80vh - 10px;
+  float: right;
+  background-color: #DDDDDD;
+}
+
+#sidebar {
+  width: 20vh;
+  float: left;
+  padding-left: 10px;
+  padding-top: 10px;
 }
 
 .axis path,
@@ -30,9 +47,13 @@ body {
   pointer-events: none;
 }
 
-
 </style>
 <body>
+	<div id="sidebar">
+		test
+		<div id="checkboxlist">
+		</div>
+	</div>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
 <script>
@@ -65,6 +86,7 @@ var cValue = function(d) { return d.host;},
 
 // add the graph canvas to the body of the webpage
 var svg = d3.select("body").append("svg")
+    .attr("id", "scatterplot")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
      .call(d3.behavior.zoom().on("zoom", function () {
@@ -162,6 +184,15 @@ if (error) {
       .attr("dy", ".35em")
       .style("text-anchor", "end")
       .text(function(d) { return d;})
+
+  // add filter checkboxes
+  var sidebar = d3.select("#sidebar");
+  var checkboxlist = sidebar.select("#checkboxlist");
+  checkboxlist.selectAll(".filtercheckbox")
+        .data(color.domain())
+      .enter().append("input")
+        .attr("type", "checkbox")
+        .attr("checked", true);
 });
 
 
