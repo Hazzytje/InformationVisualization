@@ -156,7 +156,7 @@ if (error) {
                .style("opacity", .9);
           tooltip.html(
            "Host: " + d["host"] + "<br/> Destination: " + d["destination"] +"<br/> "  + "Date: " +d["start_timestamp"] + " <br/> Size: "+ xValue(d) 
-          + "bytes <br/>  Total time: " + yValue(d) + " seconds")
+          + " bytes <br/>  Total time: " + yValue(d) + " seconds")
                .style("left", (d3.event.pageX + 5) + "px")
                .style("top", (d3.event.pageY - 28) + "px");
       })
