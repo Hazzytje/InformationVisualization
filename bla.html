@@ -42,8 +42,11 @@ body {
 
 .tooltip {
   position: absolute;
-  width: 200px;
-  height: 28px;
+   font: 13px sans-serif;
+   border: 1px;
+   padding: 5px;
+   border-style: solid;
+   border-color: black;
   pointer-events: none;
 }
 
@@ -93,7 +96,6 @@ var svg = d3.select("body").append("svg")
     svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
   }))
   .append("g")
-
 // add the tooltip area to the webpage
 var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
@@ -139,7 +141,7 @@ if (error) {
       .style("text-anchor", "end")
       .text("total_time");
 
-  // draw dots
+// draw dots
   svg.selectAll(".dot")
       .data(data)
     .enter().append("circle")
@@ -152,8 +154,9 @@ if (error) {
           tooltip.transition()
                .duration(200)
                .style("opacity", .9);
-          tooltip.html(d["total_time"] + "<br/> (" + xValue(d) 
-          + ", " + yValue(d) + ")")
+          tooltip.html(
+           "Host: " + d["host"] + "<br/> Destination: " + d["destination"] +"<br/> "  + "Date: " +d["start_timestamp"] + " <br/> Size: "+ xValue(d) 
+          + "bytes <br/>  Total time: " + yValue(d) + " seconds")
                .style("left", (d3.event.pageX + 5) + "px")
                .style("top", (d3.event.pageY - 28) + "px");
       })
