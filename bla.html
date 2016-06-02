@@ -9,7 +9,8 @@
 <style>
 
 
-body {
+body, html {
+  width: 100%;
   height: 100%;
   font: 11px sans-serif;
   margin: 0;
@@ -17,20 +18,20 @@ body {
 
 #scatterplot {
   height: 100vh;
-  width: 80vh - 10px;
+  width: 80vw;
   float: right;
   background-color: #DDDDDD;
 }
 
 #sidebar {
-  width: 20vh;
+  width: 300px;
   float: left;
-  padding-left: 10px;
   padding-top: 10px;
 }
 
 #checkboxlist {
   list-style: none;
+  clear: both;
 }
 
 .axis path,
@@ -38,6 +39,21 @@ body {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
+}
+
+ul {
+  padding: 0px;
+  margin: 0px;
+}
+li {
+  padding: 0px;
+  margin: 0px;
+  width: 150px;
+}
+
+li label {
+  padding: 0px;
+  margin: 0px;
 }
 
 .dot {
@@ -54,9 +70,25 @@ body {
   pointer-events: none;
 }
 
+.togglebutton {
+  width=50px;
+}
+
+#tb1 {
+  float: left;
+}
+
+#tb2 {
+  float: right;
+}
+
 </style>
 <body>
 	<div id="sidebar">
+		<div id="buttons">
+			<input class="togglebutton" id="tb1" type="button" onclick="toggleAll(true)" value="Enable all"/>
+			<input class="togglebutton" id="tb2" type="button" onclick="toggleAll(false)" value="Disable all"/>
+		</div>
 		<ul id="checkboxlist">
 		</ul>
 	</div>
@@ -64,7 +96,7 @@ body {
 
 <script>
 var margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = 1280 - margin.left - margin.right,
+    width = 1200 - margin.left - margin.right,
     height = 720 - margin.top - margin.bottom;
 
 /* 
@@ -88,7 +120,7 @@ var yValue = function(d) { return d["total_time"];}, // data -> value
 
 // setup fill color
 var cValue = function(d) { return d.host;},
-    color = d3.scale.category10();
+    color = d3.scale.category20();
 
 // add the graph canvas to the body of the webpage
 var svg = d3.select("body").append("svg")
@@ -106,9 +138,9 @@ var tooltip = d3.select("body").append("div")
 
 // load data
 d3.csv("finalDataForAnalysisHarrysLaptopIsTraag.csv", function(error, data) {
-if (error) {
-  console.log(error)
-}
+  if (error) {
+    console.log(error)
+  }
   // change string (from CSV) into number format
   data.forEach(function(d) {
     d.nbytes_size = +d.nbytes_size;
@@ -198,12 +230,30 @@ if (error) {
   .data(color.domain())
       .enter().append("li")
         .append("label")
-          .text("what what")
+        .text(function(d) {return d;})
       .append("input")
         .attr("type", "checkbox")
-        .property("checked", true);
+        .attr("class", "filtercheckboxcheckbox")
+        .property("checked", true)
+        .attr("onchange", function(d) { return "onCheckboxChange(this, \"" + d + "\")"; } );
+
 });
 
+function onCheckboxChange(element, host) {
+  var display = element.checked ? "inline" : "none";
+  var svg = d3.select("#scatterplot");
+  svg.selectAll(".dot")
+    .filter(function(d) { return host == d.host; } )
+    .attr("display", display);
+}
+
+function toggleAll(state) {
+  d3.selectAll(".filtercheckboxcheckbox")
+    .property("checked", state);
+
+  svg.selectAll(".dot")
+    .attr("display", state ? "inline" : "none");
+}
 
 </script>
 </body>
