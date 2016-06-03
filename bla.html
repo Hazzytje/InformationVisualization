@@ -60,6 +60,10 @@ li label {
   stroke: #000;
 }
 
+rect { 
+  fill: #DDD;
+}
+
 .tooltip {
   position: absolute;
    font: 13px sans-serif;
@@ -84,159 +88,186 @@ li label {
 
 </style>
 <body>
-	<div id="sidebar">
-		<div id="buttons">
-			<input class="togglebutton" id="tb1" type="button" onclick="toggleAll(true)" value="Enable all"/>
-			<input class="togglebutton" id="tb2" type="button" onclick="toggleAll(false)" value="Disable all"/>
-		</div>
-		<ul id="checkboxlist">
-		</ul>
-	</div>
+    <div id="sidebar">
+        <div id="buttons">
+            <input class="togglebutton" id="tb1" type="button" onclick="toggleAll(true)" value="Enable all"/>
+            <input class="togglebutton" id="tb2" type="button" onclick="toggleAll(false)" value="Disable all"/>
+        </div>
+        <ul id="checkboxlist">
+        </ul>
+    </div>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
 <script>
-var margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = 1200 - margin.left - margin.right,
-    height = 720 - margin.top - margin.bottom;
-
-/* 
- * value accessor - returns the value to encode for a given data object.
- * scale - maps value to a visual display encoding, such as a pixel position.
- * map function - maps from data value to display value
- * axis - sets up axis
- */ 
-
-// setup x 
-var xValue = function(d) { return d.nbytes_size;}, // data -> value
-    xScale = d3.scale.linear().range([0, width]), // value -> display
-    xMap = function(d) { return xScale(xValue(d));}, // data -> display
-    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-
-// setup y
-var yValue = function(d) { return d["total_time"];}, // data -> value
-    yScale = d3.scale.linear().range([height, 0]), // value -> display
-    yMap = function(d) { return yScale(yValue(d));}, // data -> display
-    yAxis = d3.svg.axis().scale(yScale).orient("left");
-
-// setup fill color
-var cValue = function(d) { return d.host;},
-    color = d3.scale.category20();
-
-// add the graph canvas to the body of the webpage
-var svg = d3.select("body").append("svg")
-    .attr("id", "scatterplot")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-     .call(d3.behavior.zoom().on("zoom", function () {
-    svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
-  }))
-  .append("g")
-// add the tooltip area to the webpage
-var tooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
-
+var svg;
 // load data
 d3.csv("finalDataForAnalysisHarrysLaptopIsTraag.csv", function(error, data) {
-  if (error) {
-    console.log(error)
-  }
-  // change string (from CSV) into number format
-  data.forEach(function(d) {
-    d.nbytes_size = +d.nbytes_size;
-    d["total_time"] = +d["total_time"];
-//    console.log(d);
-  });
+    if (error) {
+      console.log(error)
+    }
+    console.log(data.length + " datapoints loaded");
+    // change string (from CSV) into number format
+    data.forEach(function(d) {
+      d.nbytes_size = +d.nbytes_size;
+      d.total_time = +d.total_time;
+    });
 
-  // don't want dots overlapping axis, so add in buffer to data domain
-  xScale.domain([d3.min(data, xValue)-1, d3.max(data, xValue)+1]);
-  yScale.domain([d3.min(data, yValue)-1, d3.max(data, yValue)+1]);
+    var margin = {top: 20, right: 20, bottom: 30, left: 40};
+    var width = 1200 - margin.left - margin.right;
+    var height = 720 - margin.top - margin.bottom;
 
-  // x-axis
-  svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis)
+    var x = d3.scale.linear()
+        .domain(d3.extent(data, function(d) { return d.nbytes_size; }))
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .domain(d3.extent(data, function(d) { return d.total_time; }))
+        .range([height, 0]);
+
+    var zoom = d3.behavior.zoom()
+        .x(x)
+        .y(y)
+        .on("zoom", zoomed);
+
+    svg = d3.select("body").append("svg")
+          .attr("id", "scatterplot")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+          .attr("id", "scatterbody")
+          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")")
+          .call(zoom);
+
+    svg.append("rect")
+        .attr("width", width)
+        .attr("height", height);
+
+    function make_x_axis() {
+        return d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+    }
+
+    function make_y_axis() {
+        return d3.svg.axis()
+            .scale(y)
+            .orient("left");
+    }
+
+    var xAxis = make_x_axis();
+    var yAxis = make_y_axis();
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
     .append("text")
-      .attr("class", "label")
-      .attr("x", width)
-      .attr("y", -6)
-      .style("text-anchor", "end")
-      .text("nbytes_size");
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", -6)
+        .style("text-anchor", "end")
+        .text("nbytes_size");
 
-  // y-axis
-  svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
     .append("text")
-      .attr("class", "label")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("total_time");
+        .attr("class", "label")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("total_time");
 
-// draw dots
-  svg.selectAll(".dot")
-      .data(data)
-    .enter().append("circle")
-      .attr("class", "dot")
-      .attr("r", 3.5)
-      .attr("cx", xMap)
-      .attr("cy", yMap)
-      .style("fill", function(d) { return color(cValue(d));}) 
-      .on("mouseover", function(d) {
-          tooltip.transition()
-               .duration(200)
-               .style("opacity", .9);
-          tooltip.html(
-           "Host: " + d["host"] + "<br/> Destination: " + d["destination"] +"<br/> "  + "Date: " +d["start_timestamp"] + " <br/> Size: "+ xValue(d) 
-          + " bytes <br/>  Total time: " + yValue(d) + " seconds")
-               .style("left", (d3.event.pageX + 5) + "px")
-               .style("top", (d3.event.pageY - 28) + "px");
-      })
-      .on("mouseout", function(d) {
-          tooltip.transition()
-               .duration(500)
-               .style("opacity", 0);
-      });
+    var cValue = function(d) { return d.host;};
+    var color = d3.scale.category20();
 
-  // draw legend
-  var legend = svg.selectAll(".legend")
-      .data(color.domain())
-    .enter().append("g")
-      .attr("class", "legend")
-      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+    function zoomed() {
+        console.log(d3.event.translate);
+        console.log(d3.event.scale);
+        svg.select(".x.axis")
+            .call(xAxis);
+        svg.select(".y.axis")
+            .call(yAxis);
+        svg.selectAll(".dot")
+            .attr("cx", function(d) { return x(d.nbytes_size); })
+            .attr("cy", function(d) { return y(d.total_time); })
+    }
 
-  // draw legend colored rectangles
-  legend.append("rect")
-      .attr("x", width - 18)
-      .attr("width", 18)
-      .attr("height", 18)
-      .style("fill", color);
 
-  // draw legend text
-  legend.append("text")
-      .attr("x", width - 24)
-      .attr("y", 9)
-      .attr("dy", ".35em")
-      .style("text-anchor", "end")
-      .text(function(d) { return d;})
+    // add the tooltip area to the webpage
+    var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
 
-  // add filter checkboxes
-  var sidebar = d3.select("#sidebar");
-  var checkboxlist = sidebar.select("#checkboxlist");
-  checkboxlist.selectAll(".filtercheckbox")
-  .data(color.domain())
-      .enter().append("li")
-        .append("label")
-        .text(function(d) {return d;})
-      .append("input")
-        .attr("type", "checkbox")
-        .attr("class", "filtercheckboxcheckbox")
-        .property("checked", true)
-        .attr("onchange", function(d) { return "onCheckboxChange(this, \"" + d + "\")"; } );
+    // add dots
+    var dots = svg
+        .append("g")
+        .attr("id", "dots");
 
+    d3.select("#dots").selectAll(".dot")
+        .data(data)
+      .enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 3.5)
+        .attr("cx", function(d) { return x(d.nbytes_size); })
+        .attr("cy", function(d) { return y(d.total_time); })
+        .style("fill", function(d) { return color(cValue(d));}) 
+        .on("mouseover", function(d) {
+            tooltip.transition()
+                 .duration(200)
+                 .style("opacity", .9);
+            tooltip.html(
+             "Host: " + d.host + "<br/>" + 
+             "Destination: " + d.destination + "<br/>" +
+             "Date: " + d.start_timestamp + "<br/>" +
+             "Size: " + d.nbytes_size + " bytes <br/>" + 
+             "Total time: " + d.total_time + " seconds"
+            )
+         .style("left", (d3.event.pageX + 5) + "px")
+         .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function(d) {
+            tooltip.transition()
+                 .duration(500)
+                 .style("opacity", 0);
+        });
+
+    // draw legend
+    var legend = svg.selectAll(".legend")
+        .data(color.domain())
+      .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+    // draw legend colored rectangles
+    legend.append("rect")
+        .attr("x", width - 18)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", color);
+
+    // draw legend text
+    legend.append("text")
+        .attr("x", width - 24)
+        .attr("y", 9)
+        .attr("dy", ".35em")
+        .style("text-anchor", "end")
+        .text(function(d) { return d;})
+
+    // add filter checkboxes
+    var sidebar = d3.select("#sidebar");
+    var checkboxlist = sidebar.select("#checkboxlist");
+    checkboxlist.selectAll(".filtercheckbox")
+    .data(color.domain())
+        .enter().append("li")
+          .append("label")
+          .text(function(d) {return d;})
+        .append("input")
+          .attr("type", "checkbox")
+          .attr("class", "filtercheckboxcheckbox")
+          .property("checked", true)
+          .attr("onchange", function(d) { return "onCheckboxChange(this, \"" + d + "\")"; } );
 });
 
 function onCheckboxChange(element, host) {
@@ -245,8 +276,8 @@ function onCheckboxChange(element, host) {
   svg.selectAll(".dot")
     .filter(function(d) { return host == d.host; } )
     .attr("display", display);
-}
-
+ }
+ 
 function toggleAll(state) {
   d3.selectAll(".filtercheckboxcheckbox")
     .property("checked", state);
